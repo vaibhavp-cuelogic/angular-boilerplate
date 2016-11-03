@@ -17,6 +17,8 @@ function dashboardService($http) {
             "userDetails": [{
                 "id": 1,
                 "name": "Prasanna",
+                "lname": "Deshmukh",
+                "gender": "M",
                 "email": "prasanna@cuelogic.com",
                 "password": "prasanna@123",
                 "department": "Developer",
@@ -25,6 +27,8 @@ function dashboardService($http) {
             },{
                 "id": 2,
                 "name": "Ayush",
+                "lname": "Kumar",
+                "gender": "M",
                 "email": "ayush@cuelogic.com",
                 "password": "ayush@123",
                 "department": "I.T",
@@ -33,6 +37,8 @@ function dashboardService($http) {
             }, {
                 "id": 3,
                 "name": "Bobo",
+                "lname": "Jonson",
+                "gender": "F",
                 "email": "bobo.com",
                 "password": "bobo@123",
                 "department": "Project manager",
@@ -41,6 +47,8 @@ function dashboardService($http) {
             }, {
                 "id": 4,
                 "name": "Baby",
+                "lname": "Watson",
+                "gender": "F",
                 "email": "baby@cuelogic.com",
                 "password": "baby@123",
                 "department": "developer",
@@ -49,6 +57,8 @@ function dashboardService($http) {
             }, {
                 "id": 5,
                 "name": "Nilesh",
+                "lname": "Jamdar",
+                "gender": "M",
                 "email": "nilesh@cuelogic.com",
                 "password": "nilesh@123",
                 "department": "Designer",
@@ -57,6 +67,8 @@ function dashboardService($http) {
             }, {
                 "id": 6,
                 "name": "amol",
+                "lname": "Khamankar",
+                "gender": "M",
                 "email": "amol@cuelogic.com",
                 "password": "amol@123",
                 "department": "Manager",
@@ -65,6 +77,8 @@ function dashboardService($http) {
             }, {
                 "id": 7,
                 "name": "ganesh",
+                "lname": "Joshi",
+                "gender": "M",
                 "email": "ganesh@cuelogic.com",
                 "password": "ganesh@123",
                 "department": "Accountant",
@@ -73,6 +87,8 @@ function dashboardService($http) {
             }, {
                 "id": 8,
                 "name": "Vaibhav",
+                "lname": "Pathak",
+                "gender": "M",
                 "email": "vaibhav.pathak@cuelogic.com",
                 "password": "12345678",
                 "department": "Frontend Developer",

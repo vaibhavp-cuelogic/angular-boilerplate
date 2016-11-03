@@ -4,9 +4,9 @@
 
     angular
         .module('dashboard')
-        .controller('dashboardController', ['$scope', '$state', 'dashboardService', 'loginAuthService', 'localStorageServiceWrapper', '$location', dashboardController]);
+        .controller('dashboardController', ['$scope', '$state', 'dashboardService', 'loginAuthService', 'localStorageServiceWrapper', '$location', 'employeeService', dashboardController]);
 
-    function dashboardController($scope, $state, dashboardService, loginAuthService ,localStorageServiceWrapper, $location) {   
+    function dashboardController($scope, $state, dashboardService, loginAuthService ,localStorageServiceWrapper, $location, employeeService) {   
 
          // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
         var currentUserDetails = localStorageServiceWrapper.get('currentUser');
@@ -17,7 +17,8 @@
 
         $scope.userList = function() { 
             //calling API and get user list
-            $scope.getUsers = dashboardService.getUserList().userDetails;
+            //$scope.getUsers = dashboardService.getUserList().userDetails;
+            $scope.getUsers = employeeService.getEmployeeList().userDetails;
             
             $scope.subTabMenus = [{
                 'tabMenu': 'All',

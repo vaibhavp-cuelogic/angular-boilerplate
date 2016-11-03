@@ -44733,61 +44733,6 @@ angular
 
 })();
 
-angular.module('sidebarMenu.directive', [])
-    .directive("sidebarMenu", sidebarMenu);
-
-function sidebarMenu() {
-    return {
-        restrict: "E",
-        scope: {
-            "sidebarMenuList": "="
-        },
-        templateUrl: "app/directives/menu/views/sidebar-menu.html",
-        controller: ['$scope', '$location', function($scope, $location) {
-
-            $scope.subTabMenus = function() {
-                var increment = 0;
-
-                angular.forEach($scope.sidebarMenuList, function(menu) {
-
-                    $scope.sidebarMenuList[increment]["activeCls"] = '';
-
-                    if (menu.action == $location.url().replace(/\//g, '')) {
-                        $scope.sidebarMenuList[increment]["activeCls"] = 'active';
-                    }
-                    increment++;
-                });
-                return $scope.sidebarMenuList;
-            };
-        }]
-    };
-}
-
-angular.module('auth', ['login.service']);
-
-'use strict';
-(function() {
-
-    angular
-        .module('auth')
-        .config(['$stateProvider', stateProvider]);
-
-    function stateProvider($stateProvider) {
-
-        $stateProvider
-            .state('login', {
-                url: '/login',
-                views: {
-                    '@': {
-                        templateUrl: 'app/modules/auth/views/login.html',
-                        controller: 'loginController'
-                    }
-                }
-            });
-    }
-
-})();
-
 angular.module('base', ['menu.service', 'sidebarMenu.directive']);
 
 (function() {
@@ -44823,7 +44768,32 @@ angular.module('base', ['menu.service', 'sidebarMenu.directive']);
 
 })();
 
-angular.module('dashboard', ['dashboard.service']);
+angular.module('auth', ['login.service']);
+
+'use strict';
+(function() {
+
+    angular
+        .module('auth')
+        .config(['$stateProvider', stateProvider]);
+
+    function stateProvider($stateProvider) {
+
+        $stateProvider
+            .state('login', {
+                url: '/login',
+                views: {
+                    '@': {
+                        templateUrl: 'app/modules/auth/views/login.html',
+                        controller: 'loginController'
+                    }
+                }
+            });
+    }
+
+})();
+
+angular.module('dashboard', ['dashboard.service','employee.service']);
  /*'dashboard.directive'*/
 
 (function() {
@@ -44851,7 +44821,7 @@ angular.module('dashboard', ['dashboard.service']);
 
 
 
-angular.module('user', []);
+angular.module('user', ['employee.service']);
 (function() {
     'use strict';
 
@@ -44870,7 +44840,70 @@ angular.module('user', []);
                         controller: 'userController'
                     }
                 }
+            })
+
+            .state('base.edit-user', {
+                url: '/edit/user/:uid',
+                views: {
+                    'content': {
+                        templateUrl: 'app/modules/user/views/edit_user.html',
+                        controller: 'editUserController'
+                    }
+                }
             });
+    }
+
+})();
+
+angular.module('sidebarMenu.directive', [])
+    .directive("sidebarMenu", sidebarMenu);
+
+function sidebarMenu() {
+    return {
+        restrict: "E",
+        scope: {
+            "sidebarMenuList": "="
+        },
+        templateUrl: "app/directives/menu/views/sidebar-menu.html",
+        controller: ['$scope', '$location', function($scope, $location) {
+
+            $scope.subTabMenus = function() {
+                var increment = 0;
+
+                angular.forEach($scope.sidebarMenuList, function(menu) {
+
+                    $scope.sidebarMenuList[increment]["activeCls"] = '';
+
+                    if (menu.action == $location.url().replace(/\//g, '')) {
+                        $scope.sidebarMenuList[increment]["activeCls"] = 'active';
+                    }
+                    increment++;
+                });
+                return $scope.sidebarMenuList;
+            };
+        }]
+    };
+}
+
+'use strict';
+(function() {
+
+    angular
+        .module('base')
+        .controller('baseController', ['$scope', '$state', 'menuService', 'localStorageServiceWrapper', baseController]);
+
+    function baseController($scope, $state, menuService, localStorageServiceWrapper) {
+
+    	console.log("Inside Base controller");
+        
+        //calling API and get menus
+        $scope.getMenus = menuService.getSidebarMenuList().userMenu;
+
+        // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
+        $scope.currentUserDetails = localStorageServiceWrapper.get('currentUser');
+
+        //localStorageServiceWrapper.clearAll('currentUser');	
+
     }
 
 })();
@@ -44891,7 +44924,7 @@ angular.module('user', []);
           if( credentials !== null ) {   
             
 		// Use Promise here for checking validated user:
-		loginAuthService.loginUser(credentials).then(function(user) {localStorageServiceWrapper
+		loginAuthService.loginUser(credentials).then(function(user) { localStorageServiceWrapper
 
     		localStorageServiceWrapper.set('currentUser',user);
     		 	$timeout(function() {
@@ -44937,38 +44970,15 @@ angular.module('user', []);
 })();
 
 
-'use strict';
-(function() {
-
-    angular
-        .module('base')
-        .controller('baseController', ['$scope', '$state', 'menuService', 'localStorageServiceWrapper', baseController]);
-
-    function baseController($scope, $state, menuService, localStorageServiceWrapper) {
-
-    	console.log("Inside Base controller");
-        
-        //calling API and get menus
-        $scope.getMenus = menuService.getSidebarMenuList().userMenu;
-
-        // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
-        $scope.currentUserDetails = localStorageServiceWrapper.get('currentUser');
-
-        //localStorageServiceWrapper.clearAll('currentUser');	
-
-    }
-
-})();
-
 (function() {
 
     'use strict';
 
     angular
         .module('dashboard')
-        .controller('dashboardController', ['$scope', '$state', 'dashboardService', 'loginAuthService', 'localStorageServiceWrapper', '$location', dashboardController]);
+        .controller('dashboardController', ['$scope', '$state', 'dashboardService', 'loginAuthService', 'localStorageServiceWrapper', '$location', 'employeeService', dashboardController]);
 
-    function dashboardController($scope, $state, dashboardService, loginAuthService ,localStorageServiceWrapper, $location) {   
+    function dashboardController($scope, $state, dashboardService, loginAuthService ,localStorageServiceWrapper, $location, employeeService) {   
 
          // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
         var currentUserDetails = localStorageServiceWrapper.get('currentUser');
@@ -44979,7 +44989,8 @@ angular.module('user', []);
 
         $scope.userList = function() { 
             //calling API and get user list
-            $scope.getUsers = dashboardService.getUserList().userDetails;
+            //$scope.getUsers = dashboardService.getUserList().userDetails;
+            $scope.getUsers = employeeService.getEmployeeList().userDetails;
             
             $scope.subTabMenus = [{
                 'tabMenu': 'All',
@@ -45006,11 +45017,92 @@ angular.module('user', []);
 
     angular
         .module('user')
+        .controller('editUserController', ['$scope', '$stateParams', 'employeeService', '$location', '$timeout', editUserController])
+
+        .directive('ngConfirmClick',[
+        function(){
+            return {
+                restrict: 'A',
+                scope: 
+                {
+                    slheats: "=",
+                    confirmedClick: "&"
+                },
+                controller: 'editUserController',
+                link: function (scope, element, attr) { 
+
+                    //console.log(attr);
+
+                    var msg = attr.ngConfirmClick || "Are you sure?";
+                    var clickAction = attr.confirmedClick;
+                    
+                    console.log(clickAction);
+
+                    element.bind('click',function (event) {
+                        if (window.confirm(msg)) { 
+                          scope.$apply(attr.confirmedClick);
+                        }
+                    });
+                }
+            };
+    }])
+
+    function editUserController($scope,$stateParams, employeeService, $location, $timeout) {	
+
+        
+        $scope.sayHi = function(uid) {
+            alert(uid);
+        }
+        
+
+        $scope.setTitle = 'Edit User';
+        
+
+        // Get unique id for each record pass through url:
+        var postUid = parseInt($stateParams.uid);
+            
+        // Call employeeService service for fetching individual passed id employe record.
+        $scope.getUseDetails = employeeService.getEmployee(postUid);
+
+
+        // Function for update user/employee details:
+        $scope.UpdateUser = function(userInfo) {
+
+            var empId = userInfo.id;
+
+            employeeService.updateEmployee(empId, userInfo).then(function(res) {
+
+                $timeout(function() {
+                  $location.path('/dashboard');
+                }, 1500); 
+            
+            }).catch(function(msg){
+
+                alert(msg);
+            });
+            
+        }
+
+    }
+
+})();
+
+'use strict';
+(function() {
+
+    angular
+        .module('user')
         .controller('userController', ['$scope', userController]);
 
-    function userController($scope) {
-        $scope.setTitle = 'Add user';
-    }
+    function userController($scope) {	
+
+    	$scope.setTitle = 'Add user';
+
+    	$scope.editUser = function() {
+			alert('Here');
+			$scope.setTitle = 'Edit User';    		
+    	}
+	}
 
 })();
 
@@ -45071,6 +45163,8 @@ function dashboardService($http) {
             "userDetails": [{
                 "id": 1,
                 "name": "Prasanna",
+                "lname": "Deshmukh",
+                "gender": "M",
                 "email": "prasanna@cuelogic.com",
                 "password": "prasanna@123",
                 "department": "Developer",
@@ -45079,6 +45173,8 @@ function dashboardService($http) {
             },{
                 "id": 2,
                 "name": "Ayush",
+                "lname": "Kumar",
+                "gender": "M",
                 "email": "ayush@cuelogic.com",
                 "password": "ayush@123",
                 "department": "I.T",
@@ -45087,6 +45183,8 @@ function dashboardService($http) {
             }, {
                 "id": 3,
                 "name": "Bobo",
+                "lname": "Jonson",
+                "gender": "F",
                 "email": "bobo.com",
                 "password": "bobo@123",
                 "department": "Project manager",
@@ -45095,6 +45193,8 @@ function dashboardService($http) {
             }, {
                 "id": 4,
                 "name": "Baby",
+                "lname": "Watson",
+                "gender": "F",
                 "email": "baby@cuelogic.com",
                 "password": "baby@123",
                 "department": "developer",
@@ -45103,6 +45203,8 @@ function dashboardService($http) {
             }, {
                 "id": 5,
                 "name": "Nilesh",
+                "lname": "Jamdar",
+                "gender": "M",
                 "email": "nilesh@cuelogic.com",
                 "password": "nilesh@123",
                 "department": "Designer",
@@ -45111,6 +45213,8 @@ function dashboardService($http) {
             }, {
                 "id": 6,
                 "name": "amol",
+                "lname": "Khamankar",
+                "gender": "M",
                 "email": "amol@cuelogic.com",
                 "password": "amol@123",
                 "department": "Manager",
@@ -45119,6 +45223,8 @@ function dashboardService($http) {
             }, {
                 "id": 7,
                 "name": "ganesh",
+                "lname": "Joshi",
+                "gender": "M",
                 "email": "ganesh@cuelogic.com",
                 "password": "ganesh@123",
                 "department": "Accountant",
@@ -45127,6 +45233,8 @@ function dashboardService($http) {
             }, {
                 "id": 8,
                 "name": "Vaibhav",
+                "lname": "Pathak",
+                "gender": "M",
                 "email": "vaibhav.pathak@cuelogic.com",
                 "password": "12345678",
                 "department": "Frontend Developer",
@@ -45138,6 +45246,53 @@ function dashboardService($http) {
     //END
 };
 
+angular.module('employee.service',[])
+.factory('employeeService', ['$http', 'dashboardService', employeeService]);
+  
+function employeeService($http, dashboardService) {
+    var employee = {};
+
+    // Fetch all employees records from inner service call as 'dashboardService':
+    empList = dashboardService.getUserList();    
+
+    employee.getEmployeeList = getEmployeeList;
+    employee.getEmployee = getEmployee;
+    employee.updateEmployee = updateEmployee;
+
+
+    // Fetch All Employee Records:
+    function getEmployeeList() {
+
+        return empList;
+    }
+
+    // Fetch Individual Employee Record:
+    function getEmployee(userId) {  
+
+        if(!isNaN(userId) && typeof(userId) == "number" && userId > 0) {
+            return empList.userDetails[userId - 1];
+        }
+    }
+
+
+    function updateEmployee(userId, userDet) {
+
+        if(!isNaN(userId) && typeof(userId) == "number" && userId > 0) {
+            empList.userDetails.splice(userId - 1, 1, userDet);
+            return new Promise(function(resolve,reject) {
+                resolve(empList);
+            });
+        }
+
+            
+       /* return new Promise(function(resolve,reject) {
+            reject("Something Went Wrong");
+        });*/
+    }
+
+    return employee;
+
+}
 angular.module('menu.service', [])
     .factory('menuService', ['$http', menuService]);
 

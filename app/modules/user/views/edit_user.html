@@ -1,0 +1,35 @@
+<div class="container-fluid paddingTP30">
+    <h3 class="page-title">{{setTitle}}</h3>
+    <form class="col-md-7" name="editUserFrm" ng-submit="UpdateUser(getUseDetails)" >
+        <div class="form-group">
+            <label for="firstName">First name</label>
+            <input type="text" class="form-control" id="firstName" placeholder="Enter first name" ng-model="getUseDetails.name" required>
+            <p ng-show="userForm.username.$error.required">Your username is required.</p>
+        </div>
+        <div class="form-group">
+            <label for="lastName">Last name</label>
+            <input type="text" class="form-control" id="lastName" placeholder="Enter last name" ng-model="getUseDetails.lname" required="true">
+        </div>
+        <div class="form-group">
+            <label for="email">Email address</label>
+            <input type="email" class="form-control" id="email" placeholder="Enter email" ng-model="getUseDetails.email" required="true">
+        </div>
+        <div class="form-group">
+            <div class="row">
+                <label for="" class="col-md-12">Gender</label>
+                <label class="col-md-6">
+                    <input type="radio" name="gender" id="male" value="male" ng-checked="getUseDetails.gender == 'M'" ng-model="getUseDetails.gender"> Male
+                </label>
+                <label class="col-md-6">
+                    <input type="radio" name="gender" id="female" value="female" ng-checked="getUseDetails.gender == 'F'" ng-model="getUseDetails.gender" > Female
+                </label>
+            </div>
+        </div>
+        <input type="hidden" name="empid" ng-model="getUseDetails.id">
+        <!-- <div class="form-group">
+            <label for="exampleInputFile">Upload file</label>
+            <input type="file" id="exampleInputFile">
+        </div> -->
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>

@@ -14,7 +14,7 @@
           if( credentials !== null ) {   
             
 		// Use Promise here for checking validated user:
-		loginAuthService.loginUser(credentials).then(function(user) {localStorageServiceWrapper
+		loginAuthService.loginUser(credentials).then(function(user) { localStorageServiceWrapper
 
     		localStorageServiceWrapper.set('currentUser',user);
     		 	$timeout(function() {
