@@ -15,13 +15,21 @@
             <input type="email" class="form-control" id="email" placeholder="Enter email" ng-model="getUseDetails.email" required="true">
         </div>
         <div class="form-group">
+            <label for="email">Department</label>
+            <input type="text" class="form-control" id="department" placeholder="Enter Department" ng-model="getUseDetails.department" required="true">
+        </div>
+        <div class="form-group">
+            <label for="email">Salary</label>
+            <input type="text" class="form-control" id="salary" placeholder="Enter Salary" ng-model="getUseDetails.salary" required="true">
+        </div>
+        <div class="form-group">
             <div class="row">
                 <label for="" class="col-md-12">Gender</label>
                 <label class="col-md-6">
-                    <input type="radio" name="gender" id="male" value="male" ng-checked="getUseDetails.gender == 'M'" ng-model="getUseDetails.gender"> Male
+                    <input type="radio" name="gender" id="male" value="M" ng-checked="getUseDetails.gender == 'M'" ng-model="getUseDetails.gender"> Male
                 </label>
                 <label class="col-md-6">
-                    <input type="radio" name="gender" id="female" value="female" ng-checked="getUseDetails.gender == 'F'" ng-model="getUseDetails.gender" > Female
+                    <input type="radio" name="gender" id="female" value="F" ng-checked="getUseDetails.gender == 'F'" ng-model="getUseDetails.gender" > Female
                 </label>
             </div>
         </div>

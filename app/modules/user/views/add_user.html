@@ -1,33 +1,42 @@
 <div class="container-fluid paddingTP30">
     <h3 class="page-title">{{setTitle}}</h3>
-    <form class="col-md-7">
+     <form class="col-md-7" name="AddUserFrm" ng-submit="AddUser(addUseDetails)" >
         <div class="form-group">
             <label for="firstName">First name</label>
-            <input type="text" class="form-control" id="firstName" placeholder="Enter first name">
+            <input type="text" class="form-control" id="firstName" placeholder="Enter first name" ng-model="addUseDetails.name" required="true">
         </div>
         <div class="form-group">
             <label for="lastName">Last name</label>
-            <input type="text" class="form-control" id="lastName" placeholder="Enter last name">
+            <input type="text" class="form-control" id="lastName" placeholder="Enter last name" ng-model="addUseDetails.lname" required="true">
         </div>
         <div class="form-group">
             <label for="email">Email address</label>
-            <input type="email" class="form-control" id="email" placeholder="Enter email">
+            <input type="email" class="form-control" id="email" placeholder="Enter email" ng-model="addUseDetails.email" required="true">
+        </div>
+        <div class="form-group">
+            <label for="email">Department</label>
+            <input type="text" class="form-control" id="department" placeholder="Enter Department" ng-model="addUseDetails.department" required="true">
+        </div>
+        <div class="form-group">
+            <label for="email">Salary</label>
+            <input type="text" class="form-control" id="salary" placeholder="Enter Salary" ng-model="addUseDetails.salary" required="true">
         </div>
         <div class="form-group">
             <div class="row">
                 <label for="" class="col-md-12">Gender</label>
                 <label class="col-md-6">
-                    <input type="radio" name="gender" id="male" value="male" checked> Male
+                    <input type="radio" name="gender" id="male" value="M" checked ng-model="addUseDetails.gender"   > Male
                 </label>
                 <label class="col-md-6">
-                    <input type="radio" name="gender" id="female" value="female"> Female
+                    <input type="radio" name="gender" id="female" value="F" ng-model="addUseDetails.gender" > Female
                 </label>
             </div>
         </div>
-        <div class="form-group">
+        <!-- <div class="form-group">
             <label for="exampleInputFile">Upload file</label>
             <input type="file" id="exampleInputFile">
-        </div>
+        </div> -->
+        
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 </div>

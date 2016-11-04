@@ -44733,6 +44733,31 @@ angular
 
 })();
 
+angular.module('auth', ['login.service']);
+
+'use strict';
+(function() {
+
+    angular
+        .module('auth')
+        .config(['$stateProvider', stateProvider]);
+
+    function stateProvider($stateProvider) {
+
+        $stateProvider
+            .state('login', {
+                url: '/login',
+                views: {
+                    '@': {
+                        templateUrl: 'app/modules/auth/views/login.html',
+                        controller: 'loginController'
+                    }
+                }
+            });
+    }
+
+})();
+
 angular.module('base', ['menu.service', 'sidebarMenu.directive']);
 
 (function() {
@@ -44761,31 +44786,6 @@ angular.module('base', ['menu.service', 'sidebarMenu.directive']);
                     },
                     'footer@base': {
                         templateUrl: 'app/modules/base/views/footer.html',
-                    }
-                }
-            });
-    }
-
-})();
-
-angular.module('auth', ['login.service']);
-
-'use strict';
-(function() {
-
-    angular
-        .module('auth')
-        .config(['$stateProvider', stateProvider]);
-
-    function stateProvider($stateProvider) {
-
-        $stateProvider
-            .state('login', {
-                url: '/login',
-                views: {
-                    '@': {
-                        templateUrl: 'app/modules/auth/views/login.html',
-                        controller: 'loginController'
                     }
                 }
             });
@@ -44886,29 +44886,6 @@ function sidebarMenu() {
 }
 
 'use strict';
-(function() {
-
-    angular
-        .module('base')
-        .controller('baseController', ['$scope', '$state', 'menuService', 'localStorageServiceWrapper', baseController]);
-
-    function baseController($scope, $state, menuService, localStorageServiceWrapper) {
-
-    	console.log("Inside Base controller");
-        
-        //calling API and get menus
-        $scope.getMenus = menuService.getSidebarMenuList().userMenu;
-
-        // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
-        $scope.currentUserDetails = localStorageServiceWrapper.get('currentUser');
-
-        //localStorageServiceWrapper.clearAll('currentUser');	
-
-    }
-
-})();
-
-'use strict';
 
 (function() {
 
@@ -44970,6 +44947,29 @@ function sidebarMenu() {
 })();
 
 
+'use strict';
+(function() {
+
+    angular
+        .module('base')
+        .controller('baseController', ['$scope', '$state', 'menuService', 'localStorageServiceWrapper', baseController]);
+
+    function baseController($scope, $state, menuService, localStorageServiceWrapper) {
+
+    	console.log("Inside Base controller");
+        
+        //calling API and get menus
+        $scope.getMenus = menuService.getSidebarMenuList().userMenu;
+
+        // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
+        $scope.currentUserDetails = localStorageServiceWrapper.get('currentUser');
+
+        //localStorageServiceWrapper.clearAll('currentUser');	
+
+    }
+
+})();
+
 (function() {
 
     'use strict';
@@ -44980,6 +44980,33 @@ function sidebarMenu() {
 
     function dashboardController($scope, $state, dashboardService, loginAuthService ,localStorageServiceWrapper, $location, employeeService) {   
 
+
+        var gender_order = {
+            F: 1,
+            M: 2
+        };
+    
+        $scope.order = {
+            field: 'name',
+            reverse: false
+        };
+
+        $scope.reverseOrder = false;
+    
+        $scope.dynamicOrder = function(user) {
+            var order = 0;
+            switch ($scope.order.field) {
+                case 'gender':
+                    order = gender_order[user.gender];
+                    break;
+                default:
+                    order = user[$scope.order.field];
+            }
+
+            return order;
+        }
+
+
          // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
         var currentUserDetails = localStorageServiceWrapper.get('currentUser');
         //var credLen = Object.keys(currentUserDetails).length;
@@ -44989,8 +45016,12 @@ function sidebarMenu() {
 
         $scope.userList = function() { 
             //calling API and get user list
-            //$scope.getUsers = dashboardService.getUserList().userDetails;
             $scope.getUsers = employeeService.getEmployeeList().userDetails;
+
+            //console.log($scope.getUsers);
+
+            //$scope.getUsers = employeeService.getEmployeeList();
+            //$scope.getUsers = employeeService.getEmployeeListNew();
             
             $scope.subTabMenus = [{
                 'tabMenu': 'All',
@@ -45024,23 +45055,21 @@ function sidebarMenu() {
             return {
                 restrict: 'A',
                 scope: 
-                {
-                    slheats: "=",
-                    confirmedClick: "&"
+                {   
+                    //slheats: "=",
+                    sayHi: "&"
                 },
                 controller: 'editUserController',
                 link: function (scope, element, attr) { 
 
-                    //console.log(attr);
+                    //console.log(attr.ngClick);
 
                     var msg = attr.ngConfirmClick || "Are you sure?";
                     var clickAction = attr.confirmedClick;
                     
-                    console.log(clickAction);
-
                     element.bind('click',function (event) {
                         if (window.confirm(msg)) { 
-                          scope.$apply(attr.confirmedClick);
+                          scope.$apply(attr.ngClick);
                         }
                     });
                 }
@@ -45051,7 +45080,24 @@ function sidebarMenu() {
 
         
         $scope.sayHi = function(uid) {
-            alert(uid);
+            //console.log(uid.uid);
+
+            // Calling delete method from employeeService to delete record from local storage:
+            employeeService.deleteEmployee(uid.uid).then(function(res) {
+
+
+                employeeService.setNewEmployeeList(res);
+                
+
+              $timeout(function() {   
+                  $location.path('/dashboard');
+                }, 1500);
+            
+            }).catch(function(msg){
+
+                alert(msg);
+            });
+
         }
         
 
@@ -45092,16 +45138,47 @@ function sidebarMenu() {
 
     angular
         .module('user')
-        .controller('userController', ['$scope', userController]);
+        .controller('userController', ['$scope', 'employeeService', '$location', '$timeout', userController]);
 
-    function userController($scope) {	
+    function userController($scope, employeeService, $location, $timeout) {	
 
     	$scope.setTitle = 'Add user';
 
-    	$scope.editUser = function() {
-			alert('Here');
-			$scope.setTitle = 'Edit User';    		
+    	
+    	$scope.AddUser = function(userInfo) {
+
+    		console.log(userInfo);
+    		
+    		var empNewId = parseInt(employeeService.getEmployeeList().userDetails.length) + 1; 
+
+    		//console.log(empNewId);
+
+    		empInfo = {
+				'id': empNewId,
+				'name': userInfo.name,
+				'lname': userInfo.lname,
+				'email': userInfo.email,
+				'department': userInfo.department,
+				'salary': userInfo.salary,
+				'gender': userInfo.gender,
+			};
+
+
+    		// Store employee information into localstorage
+    		
+    		employeeService.addEmployee(empInfo).then(function(res) {
+
+                $timeout(function() {
+                  $location.path('/dashboard');
+                }, 1500); 
+            
+            }).catch(function(msg){
+
+                alert('somthing went wrong');
+            });
+
     	}
+
 	}
 
 })();
@@ -45251,6 +45328,10 @@ angular.module('employee.service',[])
   
 function employeeService($http, dashboardService) {
     var employee = {};
+    var tempArr = [];
+    var empList = [];
+    var newEmpList = [];
+    //var resEmpList = [];
 
     // Fetch all employees records from inner service call as 'dashboardService':
     empList = dashboardService.getUserList();    
@@ -45258,13 +45339,51 @@ function employeeService($http, dashboardService) {
     employee.getEmployeeList = getEmployeeList;
     employee.getEmployee = getEmployee;
     employee.updateEmployee = updateEmployee;
+    employee.deleteEmployee = deleteEmployee;
+    employee.addEmployee = addEmployee;
+
+    // Temp Created:
+    employee.getEmployeeListNew = getEmployeeListNew;
+    employee.setNewEmployeeList = setNewEmployeeList;
 
 
     // Fetch All Employee Records:
     function getEmployeeList() {
 
-        return empList;
+        if(newEmpList.length > 0) {
+            return newEmpList;
+        }
+        else 
+        {
+            return empList;
+        }
     }
+
+    function getEmployeeListNew(empNewList) {
+        var resEmpList = [];
+
+
+        //return empNewList.userDetails[0].id;
+
+       for(var i=0; i < empNewList.userDetails.length; i++) {
+
+            if(empNewList.userDetails[i].id !== null) {
+
+                resEmpList.push(empNewList.userDetails[i]);
+            }
+        }
+
+        return resEmpList; 
+        //return empList;
+    }
+
+
+    function setNewEmployeeList(empNewList) {
+        
+        newEmpList.userDetails = empNewList;
+        return true;
+    }    
+
 
     // Fetch Individual Employee Record:
     function getEmployee(userId) {  
@@ -45274,7 +45393,22 @@ function employeeService($http, dashboardService) {
         }
     }
 
+    // Add new employee information into local storage:
+    
+    function addEmployee(empDet) {  
 
+        if (empDet != null) {
+            
+            empList.userDetails.push(empDet);
+
+            return new Promise(function(resolve,reject) {
+                resolve(empList);
+            });
+        }
+    }
+
+
+    // Update Individual Employee Record:
     function updateEmployee(userId, userDet) {
 
         if(!isNaN(userId) && typeof(userId) == "number" && userId > 0) {
@@ -45288,6 +45422,34 @@ function employeeService($http, dashboardService) {
        /* return new Promise(function(resolve,reject) {
             reject("Something Went Wrong");
         });*/
+    }
+
+
+    // Delete employee record:
+    function deleteEmployee(userId) {  
+
+        if (!isNaN(userId) && typeof(userId) == "number" && userId > 0) {
+            
+            //console.log(empList.userDetails);
+
+            //empList.userDetails[userId - 1].id = null;
+
+            
+
+            empList.userDetails.splice(0, 1);
+            //resEmpList = getEmployeeListNew(); 
+            //var resEmpList = getEmployeeListNew(empList); 
+            
+            return new Promise(function(resolve,reject) {
+                resolve(empList);
+                //resolve(resEmpList);
+            }); 
+        }
+
+        return false;
+        /* return new Promise(function(resolve,reject) {
+            reject("Something Went Wrong");
+        }); */
     }
 
     return employee;
