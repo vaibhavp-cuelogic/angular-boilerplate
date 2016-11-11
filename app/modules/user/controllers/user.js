@@ -7,15 +7,19 @@
 
     function userController($scope, employeeService, $location, $timeout, APIInterseptor) {	
 
+    	// Initialized radio button with default value set as 'Male' i.e. M:
+    	$scope.addUseDetails = {"gender": 'M'};
+
+
     	$scope.setTitle = 'Add user';
 
     	$scope.buttonValue = 'Submit';
 
-    	$scope.AddUser = function(userInfo) {
+    	$scope.AddUser = function() {	
 
     		var empNewId = parseInt(employeeService.getEmployeeList().userDetails.length) + 1; 
 
-    		//console.log(empNewId);
+    		var userInfo = $scope.addUseDetails;
 
     		empInfo = {
 				'id': empNewId,
@@ -42,6 +46,24 @@
 
     	}
 
-	}
+
+    	    $scope.chkEmailDuplicate = function () {
+
+            	//console.log($scope.addUseDetails.email);
+
+                if(employeeService.isDuplicateEmail($scope.addUseDetails.email)) {
+                    // editUserFrm is form name:
+                    $scope.AddUserFrm.email.$setValidity('isDuplicateEmail', false);	
+                    return $scope.AddUserFrm.email;
+                }
+                else 
+                {   
+                	// editUserFrm is form name:
+                    $scope.AddUserFrm.email.$setValidity('isDuplicateEmail', true);
+                    return $scope.AddUserFrm.email;
+                }
+			}
+
+		}
 
 })();

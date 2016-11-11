@@ -1,6 +1,6 @@
 <div class="container-fluid paddingTP30">
     <h3 class="page-title">{{setTitle}}</h3>
-     <form class="col-md-7" name="AddUserFrm" ng-submit="AddUserFrm.$valid && AddUser(addUseDetails)" novalidate>
+     <form class="col-md-7" name="AddUserFrm" ng-submit="AddUserFrm.$valid && AddUser()" novalidate>
         <div class="form-group" 
         ng-class="{ 'has-error' : AddUserFrm.firstName.$invalid && !AddUserFrm.firstName.$pristine }">
             <label for="firstName">First name</label>
@@ -18,9 +18,20 @@
         <div class="form-group" 
         ng-class="{ 'has-error' : AddUserFrm.email.$invalid && !AddUserFrm.email.$pristine }">
             <label for="email">Email address</label>
-            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" ng-model="addUseDetails.email" required>
-            <p ng-show="AddUserFrm.email.$invalid && !AddUserFrm.email.$pristine" class="help-block">Enter valid email address.</p>
+            <input type="email" 
+                   class="form-control" 
+                   id="email" 
+                   name="email" 
+                   placeholder="Enter email" 
+                   ng-model="addUseDetails.email" 
+                   ng-blur="chkEmailDuplicate()" 
+                   required>
+            
+            <p ng-show="AddUserFrm.email.$invalid && !AddUserFrm.email.$pristine  && !AddUserFrm.email.$error.isDuplicateEmail" class="help-block">Enter valid email address.</p>
+
+            <p class="help-block" ng-show="AddUserFrm.email.$error.isDuplicateEmail">email already exist</p>
         </div>
+
         <div class="form-group" 
         ng-class="{ 'has-error' : AddUserFrm.department.$invalid && !AddUserFrm.department.$pristine }">
             <label for="email">Department</label>
@@ -35,15 +46,17 @@
             <p ng-show="AddUserFrm.salary.$invalid && !AddUserFrm.salary.$pristine" class="help-block">Your 
             salary is required.</p>
         </div>
-        <div class="form-group">
-            <div class="row">
+        <div class="form-group" >
+            <div class="row" >
                 <label for="" class="col-md-12">Gender</label>
-                <label class="col-md-6">
-                    <input type="radio" name="gender" id="male" value="M" checked ng-model="addUseDetails.gender"   > Male
+                
+                <label class="col-md-6" >
+                    <input checked="true" id="male" type="radio" name="gender" value="M" ng-model="addUseDetails.gender"> Male
                 </label>
                 <label class="col-md-6">
-                    <input type="radio" name="gender" id="female" value="F" ng-model="addUseDetails.gender" > Female
+                    <input id="female" type="radio" name="gender" value="F" ng-model="addUseDetails.gender"> Female
                 </label>
+                
             </div>
         </div>
         <!-- <div class="form-group">

@@ -113,7 +113,7 @@ function employeeService($http, dashboardService, $timeout) {
 
 
     // Check is inputed email already exsist in localstorage array:
-    function isDuplicateEmail(varemail, varoldemail) {   
+    function isDuplicateEmail(varemail) {   
 
         var currentEmpList = dashboardService.getUserList();
 
