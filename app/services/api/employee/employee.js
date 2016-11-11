@@ -1,13 +1,10 @@
 angular.module('employee.service',[])
-.factory('employeeService', ['$http', 'dashboardService', employeeService]);
+.factory('employeeService', ['$http', 'dashboardService', '$timeout', employeeService]);
   
-function employeeService($http, dashboardService) {
+function employeeService($http, dashboardService, $timeout) {
     var employee = {};
-    var tempArr = [];
     var empList = [];
-    var newEmpList = [];
-    //var resEmpList = [];
-
+    
     // Fetch all employees records from inner service call as 'dashboardService':
     empList = dashboardService.getUserList();    
 
@@ -16,50 +13,16 @@ function employeeService($http, dashboardService) {
     employee.updateEmployee = updateEmployee;
     employee.deleteEmployee = deleteEmployee;
     employee.addEmployee = addEmployee;
-
-    // Temp Created:
-    employee.getEmployeeListNew = getEmployeeListNew;
-    employee.setNewEmployeeList = setNewEmployeeList;
-
+    employee.isDuplicateEmail = isDuplicateEmail;
+    employee.deleteMultipleEmployees = deleteMultipleEmployees;
 
     // Fetch All Employee Records:
     function getEmployeeList() {
 
-        if(newEmpList.length > 0) {
-            return newEmpList;
-        }
-        else 
-        {
-            return empList;
-        }
+        return empList;
     }
 
-    function getEmployeeListNew(empNewList) {
-        var resEmpList = [];
-
-
-        //return empNewList.userDetails[0].id;
-
-       for(var i=0; i < empNewList.userDetails.length; i++) {
-
-            if(empNewList.userDetails[i].id !== null) {
-
-                resEmpList.push(empNewList.userDetails[i]);
-            }
-        }
-
-        return resEmpList; 
-        //return empList;
-    }
-
-
-    function setNewEmployeeList(empNewList) {
-        
-        newEmpList.userDetails = empNewList;
-        return true;
-    }    
-
-
+      
     // Fetch Individual Employee Record:
     function getEmployee(userId) {  
 
@@ -76,7 +39,7 @@ function employeeService($http, dashboardService) {
             
             empList.userDetails.push(empDet);
 
-            return new Promise(function(resolve,reject) {
+            return new Promise(function(resolve,reject) {   
                 resolve(empList);
             });
         }
@@ -93,38 +56,76 @@ function employeeService($http, dashboardService) {
             });
         }
 
-            
-       /* return new Promise(function(resolve,reject) {
-            reject("Something Went Wrong");
-        });*/
     }
 
 
     // Delete employee record:
     function deleteEmployee(userId) {  
 
-        if (!isNaN(userId) && typeof(userId) == "number" && userId > 0) {
-            
-            //console.log(empList.userDetails);
+        if (!isNaN(userId) && typeof(userId) == "number") {
 
-            //empList.userDetails[userId - 1].id = null;
+        for(var i=0; i< empList.userDetails.length; i++){   
 
-            
+            if(empList.userDetails[i].id == userId){
+                empList.userDetails.splice(i, 1);
+                break;
+            }
+               
+        }
+        
+        return new Promise(function(resolve,reject) {
+            resolve(empList);
+        });
 
-            empList.userDetails.splice(0, 1);
-            //resEmpList = getEmployeeListNew(); 
-            //var resEmpList = getEmployeeListNew(empList); 
+      }
+      else 
+      {  
+        return false;
+      } 
+
+    }
+
+
+    function deleteMultipleEmployees(userIdsArr) {
+
+        console.log(userIdsArr[1]);
+
+        return new Promise(function(resolve,reject) {
+
+        for(var i = 0; i < userIdsArr.length; i++) {
             
-            return new Promise(function(resolve,reject) {
-                resolve(empList);
-                //resolve(resEmpList);
-            }); 
+            for(var j=0; j< empList.userDetails.length; j++){   
+
+                if(empList.userDetails[j].id == userIdsArr[i]){
+                    
+                    //$timeout(function() {
+                        empList.userDetails.splice(j, 1);
+                        resolve(empList);
+                    //}, 3000);
+                }
+            }
+        }
+           // $timeout(function() {
+                reject("Ids not selected");
+            //}, 3000);
+        });
+    }
+
+
+    // Check is inputed email already exsist in localstorage array:
+    function isDuplicateEmail(varemail, varoldemail) {   
+
+        var currentEmpList = dashboardService.getUserList();
+
+        for (var i in currentEmpList.userDetails) {
+            
+            if(currentEmpList.userDetails[i].email === varemail) {
+                
+                return true;
+            }
         }
 
         return false;
-        /* return new Promise(function(resolve,reject) {
-            reject("Something Went Wrong");
-        }); */
     }
 
     return employee;

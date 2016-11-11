@@ -3,17 +3,16 @@
 
     angular
         .module('user')
-        .controller('userController', ['$scope', 'employeeService', '$location', '$timeout', userController]);
+        .controller('userController', ['$scope', 'employeeService', '$location', '$timeout','APIInterseptor', userController]);
 
-    function userController($scope, employeeService, $location, $timeout) {	
+    function userController($scope, employeeService, $location, $timeout, APIInterseptor) {	
 
     	$scope.setTitle = 'Add user';
 
-    	
+    	$scope.buttonValue = 'Submit';
+
     	$scope.AddUser = function(userInfo) {
 
-    		console.log(userInfo);
-    		
     		var empNewId = parseInt(employeeService.getEmployeeList().userDetails.length) + 1; 
 
     		//console.log(empNewId);
@@ -30,12 +29,11 @@
 
 
     		// Store employee information into localstorage
-    		
     		employeeService.addEmployee(empInfo).then(function(res) {
 
                 $timeout(function() {
                   $location.path('/dashboard');
-                }, 1500); 
+                }, 3000); 
             
             }).catch(function(msg){
 

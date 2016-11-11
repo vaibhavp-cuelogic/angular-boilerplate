@@ -1,26 +1,57 @@
 <div class="container-fluid paddingTP30">
-    <h3 class="page-title">{{setTitle}}</h3>
-    <form class="col-md-7" name="editUserFrm" ng-submit="UpdateUser(getUseDetails)" >
-        <div class="form-group">
+    <h3 class="page-title">{{setTitle}} {{currentUserDetails.name}}</h3>
+    <form class="col-md-7" name="editUserFrm" ng-submit="editUserFrm.$valid && UpdateUser(getUseDetails)"  novalidate> <!-- novalidate -->
+        
+       <div class="form-group" 
+             ng-class="{ 'has-error' : editUserFrm.firstName.$invalid && !editUserFrm.firstName.$pristine }">
+
             <label for="firstName">First name</label>
-            <input type="text" class="form-control" id="firstName" placeholder="Enter first name" ng-model="getUseDetails.name" required>
-            <p ng-show="userForm.username.$error.required">Your username is required.</p>
+            <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Enter first name" ng-model="getUseDetails.name" required>
+            <p ng-show="editUserFrm.firstName.$invalid && !editUserFrm.firstName.$pristine" class="help-block">Your 
+            first name is required.</p>
+            <!-- <p ng-show="editUserFrm.firstName.$error.required">The value is required!</p> -->
         </div>
-        <div class="form-group">
+
+        <div class="form-group"
+             ng-class="{ 'has-error' : editUserFrm.lastName.$invalid && !editUserFrm.lastName.$pristine }">
             <label for="lastName">Last name</label>
-            <input type="text" class="form-control" id="lastName" placeholder="Enter last name" ng-model="getUseDetails.lname" required="true">
+            <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Enter last name" ng-model="getUseDetails.lname" required>
+            <p ng-show="editUserFrm.lastName.$invalid && !editUserFrm.lastName.$pristine" class="help-block">Your 
+            last name is required.</p>
         </div>
-        <div class="form-group">
+
+        
+        <div class="form-group"
+        ng-class="{ 'has-error' : editUserFrm.email.$invalid && !editUserFrm.email.$pristine }">
             <label for="email">Email address</label>
-            <input type="email" class="form-control" id="email" placeholder="Enter email" ng-model="getUseDetails.email" required="true">
+            <input type="email" 
+                   class="form-control" 
+                   id="email" 
+                   name="email" 
+                   placeholder="Enter email" 
+                   ng-model="getUseDetails.email" 
+                   ng-focus="oldValue = getUseDetails.email" 
+                   ng-blur="chkEmailDuplicate()" 
+                   required 
+                   />
+                   <p ng-show="editUserFrm.email.$invalid && !editUserFrm.email.$pristine && !editUserFrm.email.$error.isDuplicateEmail" class="help-block">Enter valid email address.</p>
+
+                    <p class="help-block" ng-show="editUserFrm.email.$error.isDuplicateEmail">email already exist</p>
         </div>
-        <div class="form-group">
+        
+        <div class="form-group"
+        ng-class="{ 'has-error' : editUserFrm.department.$invalid && !editUserFrm.department.$pristine }">
             <label for="email">Department</label>
-            <input type="text" class="form-control" id="department" placeholder="Enter Department" ng-model="getUseDetails.department" required="true">
+            <input type="text" class="form-control" id="department" name="department" placeholder="Enter Department" ng-model="getUseDetails.department" required>
+            <p ng-show="editUserFrm.department.$invalid && !editUserFrm.department.$pristine" class="help-block">Your 
+            department is required.</p>
         </div>
-        <div class="form-group">
+        <div class="form-group"
+        ng-class="{ 'has-error' : editUserFrm.salary.$invalid && !editUserFrm.salary.$pristine }">
             <label for="email">Salary</label>
-            <input type="text" class="form-control" id="salary" placeholder="Enter Salary" ng-model="getUseDetails.salary" required="true">
+            <input type="text" class="form-control" id="salary"  name="salary" placeholder="Enter Salary" ng-model="getUseDetails.salary" required>
+            <p ng-show="editUserFrm.salary.$invalid && !editUserFrm.salary.$pristine" class="help-block">Your 
+            salary is required.</p>
         </div>
         <div class="form-group">
             <div class="row">
@@ -34,10 +65,12 @@
             </div>
         </div>
         <input type="hidden" name="empid" ng-model="getUseDetails.id">
+
         <!-- <div class="form-group">
             <label for="exampleInputFile">Upload file</label>
             <input type="file" id="exampleInputFile">
         </div> -->
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <save-button disabled-button="disabledButton" button-value="buttonValue" ></save-button>
+        
     </form>
 </div>

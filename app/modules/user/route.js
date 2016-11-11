@@ -10,6 +10,7 @@
         $stateProvider
             .state('base.user', {
                 url: '/add/user',
+                authenticate: true,
                 views: {
                     'content': {
                         templateUrl: 'app/modules/user/views/add_user.html',
@@ -20,6 +21,7 @@
 
             .state('base.edit-user', {
                 url: '/edit/user/:uid',
+                authenticate: true,
                 views: {
                     'content': {
                         templateUrl: 'app/modules/user/views/edit_user.html',

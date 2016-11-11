@@ -3,9 +3,9 @@
 
     angular
         .module('base')
-        .controller('baseController', ['$scope', '$state', 'menuService', 'localStorageServiceWrapper', baseController]);
+        .controller('baseController', ['$scope', '$rootScope', '$state', 'menuService', 'localStorageServiceWrapper', baseController]);
 
-    function baseController($scope, $state, menuService, localStorageServiceWrapper) {
+    function baseController($scope, $rootScope, $state, menuService, localStorageServiceWrapper) {
 
     	console.log("Inside Base controller");
         
@@ -13,9 +13,19 @@
         $scope.getMenus = menuService.getSidebarMenuList().userMenu;
 
         // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
-        $scope.currentUserDetails = localStorageServiceWrapper.get('currentUser');
+        
 
-        //localStorageServiceWrapper.clearAll('currentUser');	
+        $rootScope.$on('authorized', function() { 
+
+            $scope.currentUserDetails = localStorageServiceWrapper.get('currentUser');
+        });	
+
+        $rootScope.$on('unauthorized', function() { 
+            
+            var currentUserDetails = localStorageServiceWrapper.set('currentUser',null);
+            $state.go('login');
+
+        });
 
     }
 

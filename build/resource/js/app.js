@@ -44719,16 +44719,73 @@ angular
             'base',
             'dashboard',
             'user'
+            
 
         ])
-        .config(['$urlRouterProvider', '$locationProvider', initializeConfigurationPhase]);
 
-    function initializeConfigurationPhase($urlRouterProvider, $locationProvider) {
+        /* 
+            IMP: Below code is checked for autheticate urls. If the url required login authentication but try to access,
+            without authentication then it redirects user to login page. For that we write below common code to handle 
+            authentication paramter. For the route urls for which we set authenticate = ture need authenticaton for access,
+            but for authenticate = false, not needed we manage this situation by below code.
+        */
+        .run(function ($rootScope, $state, loginAuthService) {    
+
+            $rootScope.$on("$stateChangeStart", function(event, toState, toParams, fromState, fromParams){
+                
+                if(toState.authenticate && !loginAuthService.isAuthenticated())
+                { 
+                    $state.transitionTo("login");
+                    event.preventDefault(); 
+                }
+
+                // For accessing login url directly after user already in login sate.
+                if(toState.chkAuthenticat && loginAuthService.isAuthenticated())
+                { 
+                    $state.transitionTo("base.dashboard");
+                    event.preventDefault(); 
+                }
+
+            });  
+        })
+
+        .config(['$urlRouterProvider', '$locationProvider', '$httpProvider', initializeConfigurationPhase]);
+
+    function initializeConfigurationPhase($urlRouterProvider, $locationProvider, $httpProvider) {
+
         $locationProvider.html5Mode({
             enabled: true,
             requireBase: false
         });
-        $urlRouterProvider.otherwise('/login');
+
+        /*
+           [IMP NOTE ]: For otherwise or default route, we checked as per conditon we redirect user,
+           i.e. if user is login and put unknown url, then redirect user on his dashboard page, and if
+           user is not login and try to put unknown url, then redirect it on login page. 
+        */
+
+        $urlRouterProvider.otherwise(function($injector, $location , loginAuthService, $state) {
+
+            // Inject the custome lgoin authentication service which we need to check for authetication.
+            var loginAuthService = $injector.get("loginAuthService");
+
+            // Inject $state object, which we need to redirect purpose.
+            var state = $injector.get('$state');
+
+            if(loginAuthService.isAuthenticated()){
+
+                state.go("base.dashboard");
+            }
+            else {
+
+                state.go("login");
+            }
+
+        });
+
+        
+
+        $httpProvider.interceptors.push('APIInterseptor');
     }
 
 })();
@@ -44741,12 +44798,13 @@ angular.module('auth', ['login.service']);
     angular
         .module('auth')
         .config(['$stateProvider', stateProvider]);
-
+    
     function stateProvider($stateProvider) {
 
         $stateProvider
             .state('login', {
                 url: '/login',
+                chkAuthenticat: true,
                 views: {
                     '@': {
                         templateUrl: 'app/modules/auth/views/login.html',
@@ -44754,11 +44812,14 @@ angular.module('auth', ['login.service']);
                     }
                 }
             });
+
+            
+           // $httpProvider.interceptors.push('APIInterseptor');
     }
 
 })();
 
-angular.module('base', ['menu.service', 'sidebarMenu.directive']);
+angular.module('base', ['menu.service', 'sidebarMenu.directive','APIInterseptor.service']);
 
 (function() {
     'use strict';
@@ -44801,13 +44862,14 @@ angular.module('dashboard', ['dashboard.service','employee.service']);
 
     angular
         .module('dashboard')
-        .config(['$stateProvider', stateProvider])
+        .config(['$stateProvider', '$urlRouterProvider', stateProvider])
 
-    function stateProvider($stateProvider) {
+    function stateProvider($stateProvider, $urlRouterProvider) {
 
         $stateProvider
             .state('base.dashboard', {
                 url: '/dashboard',
+                authenticate: true,
                 views: {
                     'content': {
                         templateUrl: 'app/modules/dashboard/views/dashboard.html',
@@ -44834,6 +44896,7 @@ angular.module('user', ['employee.service']);
         $stateProvider
             .state('base.user', {
                 url: '/add/user',
+                authenticate: true,
                 views: {
                     'content': {
                         templateUrl: 'app/modules/user/views/add_user.html',
@@ -44844,6 +44907,7 @@ angular.module('user', ['employee.service']);
 
             .state('base.edit-user', {
                 url: '/edit/user/:uid',
+                authenticate: true,
                 views: {
                     'content': {
                         templateUrl: 'app/modules/user/views/edit_user.html',
@@ -44891,9 +44955,9 @@ function sidebarMenu() {
 
     angular
         .module('auth')
-        .controller('loginController', ['$scope', '$state', 'loginAuthService', '$location', 'localStorageServiceWrapper', '$timeout', loginController]);
+        .controller('loginController', ['$scope', '$rootScope', '$state', 'loginAuthService', '$location', 'localStorageServiceWrapper', '$timeout', loginController]);
 
-    function loginController($scope, $state, loginAuthService, $location, localStorageServiceWrapper, $timeout) {
+    function loginController($scope, $rootScope, $state, loginAuthService, $location, localStorageServiceWrapper, $timeout) {
         //console.log("Inside login controller");
 		
 		$scope.loginUser = function(credentials) {
@@ -44901,14 +44965,15 @@ function sidebarMenu() {
           if( credentials !== null ) {   
             
 		// Use Promise here for checking validated user:
-		loginAuthService.loginUser(credentials).then(function(user) { localStorageServiceWrapper
+		loginAuthService.loginUser(credentials).then(function(user) { 
 
-    		localStorageServiceWrapper.set('currentUser',user);
-    		 	$timeout(function() {
+            localStorageServiceWrapper.set('currentUser',user);
+
+            	$timeout(function() {
+
                   $location.path('/dashboard');
-                }, 1500); 
 
-    		//$location.path('/dashboard');
+                }, 1500); 
 
     	}).catch(function(msg){    
             $scope.email = null;
@@ -44952,9 +45017,9 @@ function sidebarMenu() {
 
     angular
         .module('base')
-        .controller('baseController', ['$scope', '$state', 'menuService', 'localStorageServiceWrapper', baseController]);
+        .controller('baseController', ['$scope', '$rootScope', '$state', 'menuService', 'localStorageServiceWrapper', baseController]);
 
-    function baseController($scope, $state, menuService, localStorageServiceWrapper) {
+    function baseController($scope, $rootScope, $state, menuService, localStorageServiceWrapper) {
 
     	console.log("Inside Base controller");
         
@@ -44962,9 +45027,19 @@ function sidebarMenu() {
         $scope.getMenus = menuService.getSidebarMenuList().userMenu;
 
         // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
-        $scope.currentUserDetails = localStorageServiceWrapper.get('currentUser');
+        
 
-        //localStorageServiceWrapper.clearAll('currentUser');	
+        $rootScope.$on('authorized', function() { 
+
+            $scope.currentUserDetails = localStorageServiceWrapper.get('currentUser');
+        });	
+
+        $rootScope.$on('unauthorized', function() { 
+            
+            var currentUserDetails = localStorageServiceWrapper.set('currentUser',null);
+            $state.go('login');
+
+        });
 
     }
 
@@ -44976,70 +45051,124 @@ function sidebarMenu() {
 
     angular
         .module('dashboard')
-        .controller('dashboardController', ['$scope', '$state', 'dashboardService', 'loginAuthService', 'localStorageServiceWrapper', '$location', 'employeeService', dashboardController]);
+        .controller('dashboardController', ['$scope', '$rootScope', '$state', 'dashboardService', 'loginAuthService', 'localStorageServiceWrapper', '$location', 'employeeService', '$timeout', dashboardController])
 
-    function dashboardController($scope, $state, dashboardService, loginAuthService ,localStorageServiceWrapper, $location, employeeService) {   
+        .directive('deleteButton', function(){
+        return {
+            restrict: 'E',
+            scope: {
+                buttonValue: '=',
+                disabledButton : '=',
+                deleteMultipleEmp: '&'
+            },
+            template: '<input type="text" value="{{buttonValue}}" \
+                        class="btn btn-primary radius expand" ng-disabled="disabledButton" ng-click="deleteMultipleEmp()">',
+            link: function(scope, element, attrs) {
+                element.bind('click', function() {
+                    // For dynamic Edit Submit Button:
+                    //scope.$apply(attr.ngClick);
 
-
-        var gender_order = {
-            F: 1,
-            M: 2
+                });
+            }
         };
-    
-        $scope.order = {
-            field: 'name',
-            reverse: false
-        };
+    }); 
 
-        $scope.reverseOrder = false;
-    
-        $scope.dynamicOrder = function(user) {
-            var order = 0;
-            switch ($scope.order.field) {
-                case 'gender':
-                    order = gender_order[user.gender];
-                    break;
-                default:
-                    order = user[$scope.order.field];
+
+    function dashboardController($scope, $rootScope, $state, dashboardService, loginAuthService ,localStorageServiceWrapper, $location, employeeService, $timeout) {   
+
+            $scope.buttonValue = 'Delete';
+
+
+            var gender_order = {
+                F: 1,
+                M: 2
+            };
+        
+            $scope.order = {
+                field: 'name',
+                reverse: false
+            };
+
+            $scope.reverseOrder = false;
+        
+            $scope.dynamicOrder = function(user) {
+                var order = 0;
+                switch ($scope.order.field) {
+                    case 'gender':
+                        order = gender_order[user.gender];
+                        break;
+                    default:
+                        order = user[$scope.order.field];
+                }
+
+                return order;
             }
 
-            return order;
-        }
-
-
-         // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
-        var currentUserDetails = localStorageServiceWrapper.get('currentUser');
-        //var credLen = Object.keys(currentUserDetails).length;
-
-        if( currentUserDetails !== null ) {
-        $scope.blackSpinner = 'resource/images/blackSpinner.gif';
-
-        $scope.userList = function() { 
-            //calling API and get user list
-            $scope.getUsers = employeeService.getEmployeeList().userDetails;
-
-            //console.log($scope.getUsers);
-
-            //$scope.getUsers = employeeService.getEmployeeList();
-            //$scope.getUsers = employeeService.getEmployeeListNew();
+                
+            // It fetches the current login user details from services/utitility/localstorage/localstorage.js:
+            var currentEmpDetails = localStorageServiceWrapper.get('currentUser');
             
-            $scope.subTabMenus = [{
-                'tabMenu': 'All',
-                'action': 'dashboard'
-            }, {
-                'tabMenu': 'Proposals',
-                'action': 'proposals'
-            }]
+
+            $scope.blackSpinner = 'resource/images/blackSpinner.gif';
+
+            $scope.userList = function() { 
+                
+                //calling API and get user list
+                $scope.getUsers = employeeService.getEmployeeList().userDetails;
+
+                $scope.subTabMenus = [{
+                    'tabMenu': 'All',
+                    'action': 'dashboard'
+                }, {
+                    'tabMenu': 'Proposals',
+                    'action': 'proposals'
+                }]
+            }
+
+            $scope.deletedUsers = [];
+
+            $scope.selectRow = function( userId ) {
+
+            var indexOfUserId = $scope.deletedUsers.indexOf( userId );
+
+            if ( -1 == indexOfUserId ) {
+                $scope.deletedUsers.push( userId );
+            } else {
+                $scope.deletedUsers.splice( indexOfUserId, 1 );
+            }
+
         }
-      }
-      else 
-      { 
-        console.log('IIFE invalid credentials');
-        (function() {
-            $location.path('/login');
-        })();
-      }
-    }
+
+
+        $scope.deleteMultipleEmp = function() {
+
+            
+                $scope.disabledButton = true; 
+                $scope.buttonValue = 'Deleting...';
+
+                    $timeout(function() {
+                        employeeService.deleteMultipleEmployees($scope.deletedUsers).then(function(res) {
+
+                        }).catch(function(msg){
+
+                            alert(msg);
+                        });
+
+                        $scope.disabledButton = false; 
+                        $scope.buttonValue = 'Delete';
+
+                    }, 3000);
+
+            
+
+               
+
+            
+
+        }
+
+
+    } /*END*/
 
 })();
 
@@ -45048,21 +45177,20 @@ function sidebarMenu() {
 
     angular
         .module('user')
-        .controller('editUserController', ['$scope', '$stateParams', 'employeeService', '$location', '$timeout', editUserController])
-
+        // [IMP NOTE]: value and constant are same way to define constanct varaible, but by defining using value we can change it from anywhere while defining by constant not changable.
+        .value('USER_OLD_EMAIL', 'dummy@test.com') 
+        .controller('editUserController', ['$scope', '$stateParams', 'employeeService', '$location', '$timeout','USER_OLD_EMAIL', editUserController])
+        // Alert confirmation custom derective:
         .directive('ngConfirmClick',[
         function(){
             return {
                 restrict: 'A',
                 scope: 
                 {   
-                    //slheats: "=",
                     sayHi: "&"
                 },
                 controller: 'editUserController',
                 link: function (scope, element, attr) { 
-
-                    //console.log(attr.ngClick);
 
                     var msg = attr.ngConfirmClick || "Are you sure?";
                     var clickAction = attr.confirmedClick;
@@ -45076,23 +45204,53 @@ function sidebarMenu() {
             };
     }])
 
-    function editUserController($scope,$stateParams, employeeService, $location, $timeout) {	
 
-        
-        $scope.sayHi = function(uid) {
-            //console.log(uid.uid);
+    .directive('saveButton', function(){
+        return {
+            require: '^form',
+            restrict: 'E',
+            scope: {
+                buttonValue: '=',
+                disabledButton : '='
+            },
+            template: '<input type="submit" value="{{buttonValue}}" \
+                        class="btn btn-primary radius expand" ng-disabled="disabledButton" >',
+            link: function(scope, element, attrs, ctrl) {
+                element.bind('click', function() {
+                    
+                    // If condition to check is form completely validat or not:
+                    if(ctrl.$valid) {
+
+                        // For dynamic Edit Submit Button:
+                        scope.disabledButton = true; 
+                        scope.buttonValue = 'Saving...';
+                    }
+                });
+            }
+        };
+    });    
+     
+    function editUserController($scope,$stateParams, employeeService, $location, $timeout, USER_OLD_EMAIL) {
+
+        $scope.buttonValue = 'Submit'; 
+
+
+       $scope.toggledbldisplay = function() {
+
+        alert('Double clicked');
+       }       
+
+
+
+        $scope.deleteEmp = function(uid) {
+            
+            var UsrId = parseInt(uid);
 
             // Calling delete method from employeeService to delete record from local storage:
-            employeeService.deleteEmployee(uid.uid).then(function(res) {
+            employeeService.deleteEmployee(UsrId).then(function(res) {
 
+               // console.log(res);
 
-                employeeService.setNewEmployeeList(res);
-                
-
-              $timeout(function() {   
-                  $location.path('/dashboard');
-                }, 1500);
-            
             }).catch(function(msg){
 
                 alert(msg);
@@ -45100,7 +45258,49 @@ function sidebarMenu() {
 
         }
         
+        //  Below function is used to check for duplicate email:
+        var count = 0;
 
+        $scope.chkEmailDuplicate = function () {
+
+            //alert('oldValue = ' + $scope.oldValue);
+            //alert('newValue = ' + $scope.getUseDetails.email);
+
+            if(count == 0) {
+              // Global constant value varaible define at top:
+              USER_OLD_EMAIL = $scope.oldValue;
+            }
+
+            console.log('User Old Val==>'+USER_OLD_EMAIL);
+
+            if(USER_OLD_EMAIL !== $scope.getUseDetails.email)
+            {   
+                count++;
+                
+                if(employeeService.isDuplicateEmail($scope.getUseDetails.email, $scope.oldValue)) {
+                    
+                    // editUserFrm is form name:
+                    $scope.editUserFrm.email.$setValidity('isDuplicateEmail', false);
+                    return $scope.editUserFrm.email;
+                }
+                else 
+                {   
+                    // editUserFrm is form name:
+                    $scope.editUserFrm.email.$setValidity('isDuplicateEmail', true);
+                    return $scope.editUserFrm.email;
+                }
+
+            }
+            else 
+            {   
+                // editUserFrm is form name:
+                $scope.editUserFrm.email.$setValidity('isDuplicateEmail', true);
+                return $scope.editUserFrm.email; 
+            }
+
+        }
+
+        
         $scope.setTitle = 'Edit User';
         
 
@@ -45115,12 +45315,11 @@ function sidebarMenu() {
         $scope.UpdateUser = function(userInfo) {
 
             var empId = userInfo.id;
-
             employeeService.updateEmployee(empId, userInfo).then(function(res) {
 
-                $timeout(function() {
+                $timeout(function() {   
                   $location.path('/dashboard');
-                }, 1500); 
+                }, 3000); 
             
             }).catch(function(msg){
 
@@ -45138,17 +45337,16 @@ function sidebarMenu() {
 
     angular
         .module('user')
-        .controller('userController', ['$scope', 'employeeService', '$location', '$timeout', userController]);
+        .controller('userController', ['$scope', 'employeeService', '$location', '$timeout','APIInterseptor', userController]);
 
-    function userController($scope, employeeService, $location, $timeout) {	
+    function userController($scope, employeeService, $location, $timeout, APIInterseptor) {	
 
     	$scope.setTitle = 'Add user';
 
-    	
+    	$scope.buttonValue = 'Submit';
+
     	$scope.AddUser = function(userInfo) {
 
-    		console.log(userInfo);
-    		
     		var empNewId = parseInt(employeeService.getEmployeeList().userDetails.length) + 1; 
 
     		//console.log(empNewId);
@@ -45165,12 +45363,11 @@ function sidebarMenu() {
 
 
     		// Store employee information into localstorage
-    		
     		employeeService.addEmployee(empInfo).then(function(res) {
 
                 $timeout(function() {
                   $location.path('/dashboard');
-                }, 1500); 
+                }, 3000); 
             
             }).catch(function(msg){
 
@@ -45183,15 +45380,67 @@ function sidebarMenu() {
 
 })();
 
+'use strict';
+
+angular.module('APIInterseptor.service', [])
+
+    .factory('APIInterseptor', function($rootScope, localStorageServiceWrapper) {
+
+        var service = {};
+
+        service.request = function(config) { 
+
+            var currentEmpUser = localStorageServiceWrapper.get('currentUser');
+
+            access_token = currentEmpUser?currentEmpUser.id:null;
+
+            if(access_token){
+
+                config.headers.authorization = access_token;
+                $rootScope.$broadcast('authorized');
+            }
+            
+            //console.log(config);
+
+            return config;
+        }
+
+        /*service.response = function(response) { 
+            
+            response.status = 401;
+            
+            //service.responseError (response);
+            
+            return response;
+        }*/
+
+        service.responseError = function(response) { 
+
+            //console.log(response.status);
+            //alert('i am in responseError');
+
+            if(response.status === 401){
+
+               $rootScope.$broadcast('unauthorized'); 
+            }
+
+            return response;
+        }
+
+        return service;
+
+    });
 
 angular.module('login.service',[])
-.factory('loginAuthService', function($http,dashboardService) {
+.factory('loginAuthService', function($http,dashboardService, localStorageServiceWrapper) {
 
 	// Emtpy Object Declaration:
 	var authService = {};
 	var userList = dashboardService.getUserList().userDetails;
 
 	authService.loginUser = function(credentials) {
+
+		return new Promise(function(resolve,reject) {
 
 		for(var i = 0; i < userList.length; i++) {
             var dt = userList[i] ;
@@ -45200,20 +45449,29 @@ angular.module('login.service',[])
             if(credLen > 0 && dt.email == credentials.email && dt.password == credentials.password)
             {	
                 // Use Promise here for validate user:
-                return new Promise(function(resolve,reject){
-					resolve(dt);
-				});
-
+                resolve(dt);			
 			}
 		}
 
-        //return false;
-
-        return new Promise(function(resolve,reject){
 			reject("Credentails not match. Please try with valid credentials.");
+
 		});
 
-	};
+    };
+
+
+	authService.isAuthenticated = function() { 
+
+	 if(localStorageServiceWrapper.get('currentUser') == null) {
+
+	 	return false;
+	 }	
+	 else 
+	 {
+	 	return true;
+	 }
+
+	}    
 
 	return authService;
 }) 
@@ -45324,15 +45582,12 @@ function dashboardService($http) {
 };
 
 angular.module('employee.service',[])
-.factory('employeeService', ['$http', 'dashboardService', employeeService]);
+.factory('employeeService', ['$http', 'dashboardService', '$timeout', employeeService]);
   
-function employeeService($http, dashboardService) {
+function employeeService($http, dashboardService, $timeout) {
     var employee = {};
-    var tempArr = [];
     var empList = [];
-    var newEmpList = [];
-    //var resEmpList = [];
-
+    
     // Fetch all employees records from inner service call as 'dashboardService':
     empList = dashboardService.getUserList();    
 
@@ -45341,50 +45596,16 @@ function employeeService($http, dashboardService) {
     employee.updateEmployee = updateEmployee;
     employee.deleteEmployee = deleteEmployee;
     employee.addEmployee = addEmployee;
-
-    // Temp Created:
-    employee.getEmployeeListNew = getEmployeeListNew;
-    employee.setNewEmployeeList = setNewEmployeeList;
-
+    employee.isDuplicateEmail = isDuplicateEmail;
+    employee.deleteMultipleEmployees = deleteMultipleEmployees;
 
     // Fetch All Employee Records:
     function getEmployeeList() {
 
-        if(newEmpList.length > 0) {
-            return newEmpList;
-        }
-        else 
-        {
-            return empList;
-        }
+        return empList;
     }
 
-    function getEmployeeListNew(empNewList) {
-        var resEmpList = [];
-
-
-        //return empNewList.userDetails[0].id;
-
-       for(var i=0; i < empNewList.userDetails.length; i++) {
-
-            if(empNewList.userDetails[i].id !== null) {
-
-                resEmpList.push(empNewList.userDetails[i]);
-            }
-        }
-
-        return resEmpList; 
-        //return empList;
-    }
-
-
-    function setNewEmployeeList(empNewList) {
-        
-        newEmpList.userDetails = empNewList;
-        return true;
-    }    
-
-
+      
     // Fetch Individual Employee Record:
     function getEmployee(userId) {  
 
@@ -45401,7 +45622,7 @@ function employeeService($http, dashboardService) {
             
             empList.userDetails.push(empDet);
 
-            return new Promise(function(resolve,reject) {
+            return new Promise(function(resolve,reject) {   
                 resolve(empList);
             });
         }
@@ -45418,38 +45639,76 @@ function employeeService($http, dashboardService) {
             });
         }
 
-            
-       /* return new Promise(function(resolve,reject) {
-            reject("Something Went Wrong");
-        });*/
     }
 
 
     // Delete employee record:
     function deleteEmployee(userId) {  
 
-        if (!isNaN(userId) && typeof(userId) == "number" && userId > 0) {
-            
-            //console.log(empList.userDetails);
+        if (!isNaN(userId) && typeof(userId) == "number") {
 
-            //empList.userDetails[userId - 1].id = null;
+        for(var i=0; i< empList.userDetails.length; i++){   
 
-            
+            if(empList.userDetails[i].id == userId){
+                empList.userDetails.splice(i, 1);
+                break;
+            }
+               
+        }
+        
+        return new Promise(function(resolve,reject) {
+            resolve(empList);
+        });
 
-            empList.userDetails.splice(0, 1);
-            //resEmpList = getEmployeeListNew(); 
-            //var resEmpList = getEmployeeListNew(empList); 
+      }
+      else 
+      {  
+        return false;
+      } 
+
+    }
+
+
+    function deleteMultipleEmployees(userIdsArr) {
+
+        console.log(userIdsArr[1]);
+
+        return new Promise(function(resolve,reject) {
+
+        for(var i = 0; i < userIdsArr.length; i++) {
             
-            return new Promise(function(resolve,reject) {
-                resolve(empList);
-                //resolve(resEmpList);
-            }); 
+            for(var j=0; j< empList.userDetails.length; j++){   
+
+                if(empList.userDetails[j].id == userIdsArr[i]){
+                    
+                    //$timeout(function() {
+                        empList.userDetails.splice(j, 1);
+                        resolve(empList);
+                    //}, 3000);
+                }
+            }
+        }
+           // $timeout(function() {
+                reject("Ids not selected");
+            //}, 3000);
+        });
+    }
+
+
+    // Check is inputed email already exsist in localstorage array:
+    function isDuplicateEmail(varemail, varoldemail) {   
+
+        var currentEmpList = dashboardService.getUserList();
+
+        for (var i in currentEmpList.userDetails) {
+            
+            if(currentEmpList.userDetails[i].email === varemail) {
+                
+                return true;
+            }
         }
 
         return false;
-        /* return new Promise(function(resolve,reject) {
-            reject("Something Went Wrong");
-        }); */
     }
 
     return employee;

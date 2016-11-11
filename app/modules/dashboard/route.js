@@ -3,13 +3,14 @@
 
     angular
         .module('dashboard')
-        .config(['$stateProvider', stateProvider])
+        .config(['$stateProvider', '$urlRouterProvider', stateProvider])
 
-    function stateProvider($stateProvider) {
+    function stateProvider($stateProvider, $urlRouterProvider) {
 
         $stateProvider
             .state('base.dashboard', {
                 url: '/dashboard',
+                authenticate: true,
                 views: {
                     'content': {
                         templateUrl: 'app/modules/dashboard/views/dashboard.html',

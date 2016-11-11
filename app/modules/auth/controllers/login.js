@@ -4,9 +4,9 @@
 
     angular
         .module('auth')
-        .controller('loginController', ['$scope', '$state', 'loginAuthService', '$location', 'localStorageServiceWrapper', '$timeout', loginController]);
+        .controller('loginController', ['$scope', '$rootScope', '$state', 'loginAuthService', '$location', 'localStorageServiceWrapper', '$timeout', loginController]);
 
-    function loginController($scope, $state, loginAuthService, $location, localStorageServiceWrapper, $timeout) {
+    function loginController($scope, $rootScope, $state, loginAuthService, $location, localStorageServiceWrapper, $timeout) {
         //console.log("Inside login controller");
 		
 		$scope.loginUser = function(credentials) {
@@ -14,14 +14,15 @@
           if( credentials !== null ) {   
             
 		// Use Promise here for checking validated user:
-		loginAuthService.loginUser(credentials).then(function(user) { localStorageServiceWrapper
+		loginAuthService.loginUser(credentials).then(function(user) { 
 
-    		localStorageServiceWrapper.set('currentUser',user);
-    		 	$timeout(function() {
+            localStorageServiceWrapper.set('currentUser',user);
+
+            	$timeout(function() {
+
                   $location.path('/dashboard');
-                }, 1500); 
 
-    		//$location.path('/dashboard');
+                }, 1500); 
 
     	}).catch(function(msg){    
             $scope.email = null;

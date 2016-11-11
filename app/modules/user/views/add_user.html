@@ -1,25 +1,39 @@
 <div class="container-fluid paddingTP30">
     <h3 class="page-title">{{setTitle}}</h3>
-     <form class="col-md-7" name="AddUserFrm" ng-submit="AddUser(addUseDetails)" >
-        <div class="form-group">
+     <form class="col-md-7" name="AddUserFrm" ng-submit="AddUserFrm.$valid && AddUser(addUseDetails)" novalidate>
+        <div class="form-group" 
+        ng-class="{ 'has-error' : AddUserFrm.firstName.$invalid && !AddUserFrm.firstName.$pristine }">
             <label for="firstName">First name</label>
-            <input type="text" class="form-control" id="firstName" placeholder="Enter first name" ng-model="addUseDetails.name" required="true">
+            <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Enter first name" ng-model="addUseDetails.name" required>
+            <p ng-show="AddUserFrm.firstName.$invalid && !AddUserFrm.firstName.$pristine" class="help-block">Your 
+            first name is required.</p>
         </div>
-        <div class="form-group">
+        <div class="form-group" 
+        ng-class="{ 'has-error' : AddUserFrm.lastName.$invalid && !AddUserFrm.lastName.$pristine }">
             <label for="lastName">Last name</label>
-            <input type="text" class="form-control" id="lastName" placeholder="Enter last name" ng-model="addUseDetails.lname" required="true">
+            <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Enter last name" ng-model="addUseDetails.lname" required>
+            <p ng-show="AddUserFrm.lastName.$invalid && !AddUserFrm.lastName.$pristine" class="help-block">Your 
+            last name is required.</p>
         </div>
-        <div class="form-group">
+        <div class="form-group" 
+        ng-class="{ 'has-error' : AddUserFrm.email.$invalid && !AddUserFrm.email.$pristine }">
             <label for="email">Email address</label>
-            <input type="email" class="form-control" id="email" placeholder="Enter email" ng-model="addUseDetails.email" required="true">
+            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" ng-model="addUseDetails.email" required>
+            <p ng-show="AddUserFrm.email.$invalid && !AddUserFrm.email.$pristine" class="help-block">Enter valid email address.</p>
         </div>
-        <div class="form-group">
+        <div class="form-group" 
+        ng-class="{ 'has-error' : AddUserFrm.department.$invalid && !AddUserFrm.department.$pristine }">
             <label for="email">Department</label>
-            <input type="text" class="form-control" id="department" placeholder="Enter Department" ng-model="addUseDetails.department" required="true">
+            <input type="text" class="form-control" id="department" name="department" placeholder="Enter Department" ng-model="addUseDetails.department" required>
+            <p ng-show="AddUserFrm.department.$invalid && !AddUserFrm.department.$pristine" class="help-block">Your 
+            department is required.</p>
         </div>
-        <div class="form-group">
+        <div class="form-group"
+        ng-class="{ 'has-error' : AddUserFrm.salary.$invalid && !AddUserFrm.salary.$pristine }">
             <label for="email">Salary</label>
-            <input type="text" class="form-control" id="salary" placeholder="Enter Salary" ng-model="addUseDetails.salary" required="true">
+            <input type="text" class="form-control" id="salary" name="salary" placeholder="Enter Salary" ng-model="addUseDetails.salary" required>
+            <p ng-show="AddUserFrm.salary.$invalid && !AddUserFrm.salary.$pristine" class="help-block">Your 
+            salary is required.</p>
         </div>
         <div class="form-group">
             <div class="row">
@@ -37,6 +51,9 @@
             <input type="file" id="exampleInputFile">
         </div> -->
         
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <!-- <button type="submit" class="btn btn-primary">Submit</button> -->
+        
+        <save-button disabled-button="disabledButton" button-value="buttonValue"></save-button>
+
     </form>
 </div>

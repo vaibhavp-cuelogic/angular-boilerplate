@@ -17,7 +17,7 @@
                 <a href="#" id="dropdown" uib-dropdown-toggle>Hello {{currentUserDetails.name}}<span class="caret"></span></a>
                 <ul class="dropdown-menu" uib-dropdown-menu aria-labelledby="dropdown">
                     <li><a href="#">Profile</a></li>
-                    <li><a ui-sref="login">Logout</a></li>
+                    <!-- <li><a ui-sref="login">Logout</a></li> -->
                     <li><a href="javascript:void(0)"  ng-controller="loginController" ng-click="logoutUser(currentUserDetails)">Logout</a></li>
                 </ul>
             </li>
