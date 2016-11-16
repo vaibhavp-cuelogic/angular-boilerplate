@@ -44718,9 +44718,9 @@ angular
             'auth',
             'base',
             'dashboard',
+            'test',
             'user'
             
-
         ])
 
         /* 
@@ -44883,6 +44883,50 @@ angular.module('dashboard', ['dashboard.service','employee.service']);
 
 
 
+angular.module('test', ['testDirective.directive','dashboard.service','firstApp','secondApp']);
+
+// [USING DPENDANCE INJECTION] :: Nested app implemtation: Pass below created two seperate app into above, main root app's array [...];
+var firstApp = angular.module('firstApp', []);
+var secondApp = angular.module('secondApp', []);
+
+(function() {
+
+    'use strict';
+
+    angular
+        .module('test')
+        .config(['$stateProvider', stateProvider])
+
+    function stateProvider($stateProvider) {
+
+        $stateProvider
+            .state('base.test', { //base.test, if want to add side bar and menubar rendering after login.
+
+                url: '/test/directive',
+                authenticate: false,
+                views: {
+                    'content': {
+                        templateUrl: 'app/modules/test/views/testDirective.html',
+                        controller: 'testController'
+                    }
+                }
+            })
+
+            .state('base.testapp', { //base.test, if want to add side bar and menubar rendering after login.
+
+                url: '/test/ngapp',
+                authenticate: false,
+                views: {
+                    'content': {
+                        templateUrl: 'app/modules/test/views/testNgApp.html',
+                        controller: 'testController'
+                    }
+                }
+            });
+
+        }
+})();
+
 angular.module('user', ['employee.service']);
 (function() {
     'use strict';
@@ -44918,36 +44962,6 @@ angular.module('user', ['employee.service']);
     }
 
 })();
-
-angular.module('sidebarMenu.directive', [])
-    .directive("sidebarMenu", sidebarMenu);
-
-function sidebarMenu() {
-    return {
-        restrict: "E",
-        scope: {
-            "sidebarMenuList": "="
-        },
-        templateUrl: "app/directives/menu/views/sidebar-menu.html",
-        controller: ['$scope', '$location', function($scope, $location) {
-
-            $scope.subTabMenus = function() {
-                var increment = 0;
-
-                angular.forEach($scope.sidebarMenuList, function(menu) {
-
-                    $scope.sidebarMenuList[increment]["activeCls"] = '';
-
-                    if (menu.action == $location.url().replace(/\//g, '')) {
-                        $scope.sidebarMenuList[increment]["activeCls"] = 'active';
-                    }
-                    increment++;
-                });
-                return $scope.sidebarMenuList;
-            };
-        }]
-    };
-}
 
 'use strict';
 
@@ -45171,6 +45185,106 @@ function sidebarMenu() {
     } /*END*/
 
 })();
+
+(function() {
+
+	'use strict';
+
+	angular.module('test')
+	
+	.controller('testController',['$scope','$state', '$location', 'dashboardService', testController])
+
+	// [USING DPENDANCE INJECTION] :: Both firstApp and secondApp defined in index file which use to differenciate 
+	// the controller with respect to module:
+	firstApp.controller('FirstController',['$scope','$state', '$location', FirstController])
+	secondApp.controller('SecondController',['$scope','$state', '$location', SecondController])
+
+	/*.directive('myCustomer', function() {
+			
+		return {
+
+			template: 'Name: {{ customer.name }} Age: {{ customer.age }}'	
+		}	
+	});*/
+
+	function testController($scope, $state, $location, dashboardService) {
+		
+		$scope.customer = {
+
+			name: "Vaibhav Pathak",
+			age: '28'
+		};
+
+		$scope.fullName = "Vaibhav";
+	$scope.employees = dashboardService.getUserList().userDetails;
+
+		console.log($scope.employees);
+	}
+
+
+	function FirstController($scope, $state, $location) {
+
+		$scope.desc = "First App";		
+	}
+
+	function SecondController($scope, $state, $location) {
+
+		$scope.desc = "Second App";
+	}
+
+	
+})();
+
+angular.module('sidebarMenu.directive', [])
+    .directive("sidebarMenu", sidebarMenu);
+
+function sidebarMenu() {
+    return {
+        restrict: "E",
+        scope: {
+            "sidebarMenuList": "="
+        },
+        templateUrl: "app/directives/menu/views/sidebar-menu.html",
+        controller: ['$scope', '$location', function($scope, $location) {
+
+            $scope.subTabMenus = function() {
+                var increment = 0;
+
+                angular.forEach($scope.sidebarMenuList, function(menu) {
+
+                    $scope.sidebarMenuList[increment]["activeCls"] = '';
+
+                    if (menu.action == $location.url().replace(/\//g, '')) {
+                        $scope.sidebarMenuList[increment]["activeCls"] = 'active';
+                    }
+                    increment++;
+                });
+                return $scope.sidebarMenuList;
+            };
+        }]
+    };
+}
+
+
+angular
+.module('testDirective.directive', [])
+.directive("myCustomer", myCustomer);
+
+function myCustomer() {
+
+    return {    
+                restrict: "E",
+                scope: {
+                        "fetchUserDetail": "="
+                     },
+                templateUrl: "app/directives/test/views/test-customer.html",  
+                
+                controller: ['$scope', '$location', function($scope, $location) {  
+                    return $scope.fetchUserDetail;
+                }]   
+           }; 
+    }
+
 
 'use strict';
 (function() {

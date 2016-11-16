@@ -1,0 +1,14 @@
+<h2>Test Directive</h2>
+<h3><u>Directive As Attribute Example</u></h3>
+<div>
+  <my-customer fetch-user-detail="customer"></my-customer>
+  <br>
+  Name: <input type="text" name="fullName" ng-model="fullName">
+
+  <p><span>Your Name Is:</span> {{::fullName}}</p>
+  <br>
+  <ul ng-repeat="user in ::employees">
+  	<li>{{user.name}}</li>
+  </ul>
+</div>
+

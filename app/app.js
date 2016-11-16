@@ -14,9 +14,9 @@
             'auth',
             'base',
             'dashboard',
+            'test',
             'user'
             
-
         ])
 
         /* 
